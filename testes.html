@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Concentração de Elemento Químico</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+    <style>
+      html,body{
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #container{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100vw;
+        height: 100vh;
+      }
+      #myChart{
+        
+        width: 90vw !important;
+        height: auto !important;
+        
+
+      }
+      #params{
+        display: flex;
+        font-family: Arial, Helvetica, sans-serif;
+        width: 100vw;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+      .erro-estabilidade{
+        background-color: rgba(255, 0, 0, 0.319);
+        font-weight: 600;
+        font-family: inter;
+        padding: 0.5rem;
+        border-radius: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    
+    <div id="container">
+        <canvas id="myChart"></canvas>
+    </div>
+   
+
+    <script>
+      
+      function condicaoEstabilidade(deltaT, deltaX, u, indexTeste){
+        if(deltaT <= (deltaX/u)){
+          console.log('Condição de Estabilidade satisfeita para: ', deltaT, deltaX, u)
+          return true
+        }else{
+          console.log('Condição de Estabilidade NÃO satisfeita para: ', deltaT, deltaX, u)
+          document.querySelector('#container').innerHTML += `<p class='erro-estabilidade'>ERRO: Condição de estabilidade NÃO satisfeita para: Δt=${deltaT}, Δx=${deltaX}, u=${u}. Seu gráfico não foi gerado pois os parâmetros comprometem o algoritmo.<br>Conjunto prejudicado: ${JSON.stringify(dadosTeste[indexTeste])}. Elemento de índice: ${indexTeste}</p>`  
+          return false
+        }
+      }
+
+    let chartDataList = []
+    let myChart
+
+    function desenharGrafico(chartDataList, espaco, deltaT, deltaX, u, tempo, CE, Ci, dadosTeste){
+        const cores = ['red', 'blue', 'green', 'purple', 'yellow', 'brown', 'pink', 'grey', 'black', 'cyan', 'violet','red', 'blue', 'green', 'purple', 'yellow', 'brown', 'pink', 'grey', 'black', 'cyan', 'violet']
+        const pointStyles = ['circle','cross','crossRot','dash','line','rect','rectRounded','rectRot','star','triangle','circle','cross','crossRot','dash','line','rect','rectRounded','rectRot','star','triangle']
+        let dataSetList = []
+
+        if(myChart != undefined){myChart.destroy()}
+
+        chartDataList.forEach((element, index )=> {
+            dataSetList.push({
+                label: `Δx=${dadosTeste[index].deltaX}, Δt=${dadosTeste[index].deltaT}, u=${dadosTeste[index].u}, espaço:${dadosTeste[index].espaco}, tempo=${dadosTeste[index].tempo}, Ci=${dadosTeste[index].Ci} e CE=${dadosTeste[index].CE}.`,
+                data: element,
+                backgroundColor: 'rgba(255,255,255,0)',
+                borderColor: cores[index],
+                borderWidth: 1,
+                pointStyle: pointStyles[index],
+            })
+        });
+        
+        let ctx = document.getElementById('myChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: espaco+1}, (_, i) => i),
+                datasets: dataSetList,
+            },
+            options: {
+                
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        
+                    },
+                  
+                },
+            }
+        });
+    }
+    function Aproximar(u, Ci, CE, deltaT, deltaX, espaco, tempo, indexTeste){
+      
+    
+
+      let C = [];
+      
+      
+      for (let i = 0; i <= espaco; i++) {
+        C[i] = [];
+        C[i][0] = Ci;
+      }
+      for (let j = 0; j <= espaco; j++) {
+        C[0][j] = CE;
+      }
+
+      // Loop através do tempo (t)
+      for (let t = 1; t <= tempo; t++) {
+      // Loop através do espaço (x)
+      for (let x = 1; x <= espaco; x++) {
+          C[x][t] = C[x][t-1] - (u * deltaT/deltaX) * (C[x][t-1] - C[x-1][t-1]);
+      }
+      }
+
+        // chart.js data
+        let chartData = [];
+
+        for (let i = 0; i <= espaco; i++) {
+        chartData.push(C[i][tempo]);
+        }
+
+        chartDataList.push(chartData)
+       
+        desenharGrafico(chartDataList, espaco , deltaT, deltaX, u, tempo, CE, Ci, dadosTeste)
+        
+    
+    }
+
+
+      let dadosTeste = [{u: 3, 
+                      Ci: 1, 
+                      CE: 8, 
+                      deltaT: 0.00010, 
+                      deltaX: 0.001, 
+                      espaco: 10, 
+                      tempo: 12},
+
+                      {u: 3, 
+                      Ci: 1, 
+                      CE: 8, 
+                      deltaT: 0.00009, 
+                      deltaX: 0.001, 
+                      espaco: 10, 
+                      tempo: 12},
+
+                      {u: 3, 
+                      Ci: 1, 
+                      CE: 8, 
+                      deltaT: 0.00008, 
+                      deltaX: 0.001, 
+                      espaco: 10, 
+                      tempo: 12},
+
+                      {u: 3, 
+                      Ci: 1, 
+                      CE: 8, 
+                      deltaT: 0.00007, 
+                      deltaX: 0.001, 
+                      espaco: 10, 
+                      tempo: 12},
+
+                      {u: 3, 
+                      Ci: 1, 
+                      CE: 8, 
+                      deltaT: 0.00006, 
+                      deltaX: 0.001, 
+                      espaco: 10, 
+                      tempo: 12},
+
+                      {u: 3, 
+                      Ci: 1, 
+                      CE: 8, 
+                      deltaT: 0.00005, 
+                      deltaX: 0.001, 
+                      espaco: 10, 
+                      tempo: 12},
+
+                      {u: 3, 
+                      Ci: 1, 
+                      CE: 8, 
+                      deltaT: 0.00004, 
+                      deltaX: 0.001, 
+                      espaco: 10, 
+                      tempo: 12},
+
+                      {u: 3, 
+                      Ci: 1, 
+                      CE: 8, 
+                      deltaT: 0.00003, 
+                      deltaX: 0.001, 
+                      espaco: 10, 
+                      tempo: 12},
+
+                      {u: 3, 
+                      Ci: 1, 
+                      CE: 8, 
+                      deltaT: 0.00002, 
+                      deltaX: 0.001, 
+                      espaco: 10, 
+                      tempo: 12},
+
+                      {u: 3, 
+                      Ci: 1, 
+                      CE: 8, 
+                      deltaT: 0.00001, 
+                      deltaX: 0.001, 
+                      espaco: 10, 
+                      tempo: 12},
+
+                      
+                    ]
+    dadosTeste.forEach((element, index)=>{
+
+        if(condicaoEstabilidade(element.deltaT, element.deltaX, element.u, index)){
+            Aproximar(element.u, element.Ci, element.CE, element.deltaT, element.deltaX, element.espaco, element.tempo, index) 
+        }else{
+            return 
+        }
+    
+    })
+    </script>
+  </body>
+</html>

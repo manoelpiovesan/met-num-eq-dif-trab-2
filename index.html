@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Concentração de Elemento Químico</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+    <style>
+      body{
+        width: 80vw;
+      }
+      #myChart{
+        display: flex;
+        justify-content: center;
+        width: 80vw !important;
+        height: auto !important;
+      }
+      #params{
+        display: flex;
+        font-family: Arial, Helvetica, sans-serif;
+        width: 100vw;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    
+    <canvas id="myChart"></canvas>
+    <div id="params"></div>
+
+    <script>
+      let chartCount = 0
+      function condicaoEstabilidade(deltaT, deltaX, u){
+        if(deltaT <= (deltaX/u)){
+          console.log('Condição de Estabilidade satisfeita para: ', deltaT, deltaX, u)
+          document.querySelector('#params').innerHTML += '<br>A Condição de Estabilidade foi satisfeita.'
+          return true
+        }else{
+          console.log('Condição de Estabilidade NÃO satisfeita para: ', deltaT, deltaX, u)
+          document.querySelector('#params').innerHTML += '<br>A Condição de Estabilidade não satisfeita.'
+          return false}
+      }
+
+      
+
+    function Aproximar(u, Ci, CE, deltaT, deltaX, espaco, tempo){
+
+      document.querySelector('#params').textContent = `Neste gráfico foram utilizados os parâmetros Δx=${deltaX}, Δt=${deltaT}, u=${u}, espaço:${espaco}, tempo=${tempo}, Ci=${Ci} e CE=${CE}.`
+      
+      condicaoEstabilidade(deltaT, deltaX, u)
+
+
+      let C = [];
+      
+      
+      for (let i = 0; i <= espaco; i++) {
+        C[i] = [];
+        C[i][0] = Ci;
+      }
+      for (let j = 0; j <= espaco; j++) {
+        C[0][j] = CE;
+      }
+
+      // Loop através do tempo (t)
+      for (let t = 1; t <= tempo; t++) {
+      // Loop através do espaço (x)
+      for (let x = 1; x <= espaco; x++) {
+          C[x][t] = C[x][t-1] - (u * deltaT/deltaX) * (C[x][t-1] - C[x-1][t-1]);
+      }
+      }
+
+      // chart.js
+      let chartData = [];
+
+      for (let i = 0; i <= espaco; i++) {
+        chartData.push(C[i][tempo]);
+      }
+
+
+      // Create a new canvas element for the new chart
+  let newCanvas = document.createElement("canvas");
+  newCanvas.id = `myChart${chartCount}`;
+  document.body.appendChild(newCanvas);
+
+  // Use the new canvas element to create the chart
+  let ctx = newCanvas.getContext('2d');
+  let myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+          labels: Array.from({length: espaco+1}, (_, i) => i),
+          datasets: [{
+              label: `Concentracão | Δx=${deltaX}, Δt=${deltaT}, u=${u}, espaço:${espaco}, tempo=${tempo}, Ci=${Ci} e CE=${CE}`,
+              data: chartData,
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              borderColor: 'rgba(255, 99, 132, 1)',
+              borderWidth: 1
+          }]
+      },
+      options: {
+          scales: {
+              y: {
+                  beginAtZero: true
+              }
+          }
+      }
+  });
+
+  // Increment the chart count
+  chartCount++;
+
+     
+      //myChart
+      console.log(myChart.config.data.datasets)
+      }
+
+    
+    //Aproximar(3,1,8,0.00001,0.0001,30,12)
+    
+    let dadosTeste = [{u: 3, 
+                      Ci: 1, 
+                      CE: 8, 
+                      deltaT: 0.00001, 
+                      deltaX: 0.0001, 
+                      espaco: 30, 
+                      tempo: 12},
+                      
+                      {u: 3, 
+                      Ci: 1, 
+                      CE: 8, 
+                      deltaT: 0.001, 
+                      deltaX: 0.0001, 
+                      espaco: 30, 
+                      tempo: 12},
+
+                      {u: 3, 
+                      Ci: 1, 
+                      CE: 8, 
+                      deltaT: 0.0000001, 
+                      deltaX: 0.0001, 
+                      espaco: 30, 
+                      tempo: 12},
+                    ]
+    dadosTeste.forEach((element, index)=>{
+      Aproximar(element.u, element.Ci, element.CE, element.deltaT, element.deltaX, element.espaco, element.tempo)
+    })
+
+    </script>
+  </body>
+</html>
